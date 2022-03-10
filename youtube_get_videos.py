@@ -11,9 +11,6 @@ api_service_name = "youtube"
 api_version = "v3"
 DEVELOPER_KEY = getenv('DEVELOPER_KEY')
 
-youtube = googleapiclient.discovery.build(
-    api_service_name, api_version, developerKey = DEVELOPER_KEY)
-
 # python - How do you split a list into evenly sized chunks? - Stack Overflow
 # https://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks
 def chunks(lst, n):
@@ -21,22 +18,24 @@ def chunks(lst, n):
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
 
+def get_authenticated_service():
+    return googleapiclient.discovery.build(
+        api_service_name, api_version, developerKey = DEVELOPER_KEY)
+
 def get_video_id_in_playlist(playlistId):
     video_id_list = []
 
-    playlistItems = youtube.playlistItems()
-    request = playlistItems.list(
+    request = youtube.playlistItems().list(
         part="snippet",
         maxResults=50,
         playlistId=playlistId,
         fields="nextPageToken,items/snippet/resourceId/videoId"
     )
 
-    count = 0
-    while request is not None:
+    while request:
         response = request.execute()
         video_id_list.extend(list(map(lambda item: item["snippet"]["resourceId"]["videoId"], response["items"])))
-        request = playlistItems.list_next(request, response)
+        request = youtube.playlistItems().list_next(request, response)
 
     return video_id_list
 
@@ -76,9 +75,11 @@ def convertVideoItems(video_items):
 def main():
     video_id_list = get_video_id_in_playlist(playlistId="UUZf__ehlCEBPop-_sldpBUQ")
     video_items = get_video_items(video_id_list)
+    # print(len(video_items))
 
     print(json.dumps(convertVideoItems(video_items), sort_keys=True, indent=4, ensure_ascii=False))
 
 if __name__ == "__main__":
+    youtube = get_authenticated_service()
     main()
 
