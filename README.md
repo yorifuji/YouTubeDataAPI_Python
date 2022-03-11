@@ -35,3 +35,8 @@ Pythonを使ってYouTube Data APIを叩く
 - Python 3.x
 - pip install -r requirements.txt
 
+# Usage
+
+- Set YouTube Data API KEY in `.env`
+- `python youtube_get_videos.py [channel_id]`
+
