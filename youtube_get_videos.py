@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import sys
 from os import getenv
 from dotenv import load_dotenv, find_dotenv
 import json
@@ -21,6 +22,15 @@ def chunks(lst, n):
 def get_authenticated_service():
     return googleapiclient.discovery.build(
         api_service_name, api_version, developerKey = DEVELOPER_KEY)
+
+def get_uploads_playlist_id(channelId):
+    request = youtube.channels().list(
+        part="contentDetails",
+        id=channelId,
+        fields="items/contentDetails/relatedPlaylists/uploads"
+    )
+    response = request.execute()
+    return response["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
 
 def get_video_id_in_playlist(playlistId):
     video_id_list = []
@@ -72,8 +82,9 @@ def convertVideoItems(video_items):
         'image': get_image_url(item),
     }, video_items))
 
-def main():
-    video_id_list = get_video_id_in_playlist(playlistId="UUZf__ehlCEBPop-_sldpBUQ")
+def main(channelId):
+    uploads_playlist_id = get_uploads_playlist_id(channelId)
+    video_id_list = get_video_id_in_playlist(uploads_playlist_id)
     video_items = get_video_items(video_id_list)
     # print(len(video_items))
 
@@ -81,5 +92,4 @@ def main():
 
 if __name__ == "__main__":
     youtube = get_authenticated_service()
-    main()
-
+    main(sys.argv[1])
